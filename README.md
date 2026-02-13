@@ -14,22 +14,27 @@ You are required to help the manager to predict the right group of the new custo
 
 ## Neural Network Model
 
-Include the neural network model diagram.
+<img width="1536" height="1024" alt="image 2exp" src="https://github.com/user-attachments/assets/1ff21883-a01c-4aaa-afdc-7796d70da5a4" />
 
 ## DESIGN STEPS
 
 ### STEP 1:
-Write your own steps
-
+Understand the Problem,We need to predict which segment (A, B, C, or D) a new customer belongs to.
 ### STEP 2:
-
+Load the Dataset.Load the dataset from the CSV file (from GitHub or local file).
 ### STEP 3:
-
-
+Identify input features and target column (Segmentation).
+### STEP 4:
+Convert categorical labels (A, B, C, D) into numbers.Scale the feature values.
+### STEP 5:
+Create input layer (based on number of features).Add hidden layers (with ReLU activation).
+Add output layer (4 neurons with Softmax activation).
+### STEP 6:
+Check if accuracy is good.Check confusion matrix to see performance for each segment.
 ## PROGRAM
 
-### Name: 
-### Register Number:
+### Name: YASEEN F
+### Register Number: 212223220126
 
 ```python
 import pandas as pd
