@@ -14,162 +14,124 @@ You are required to help the manager to predict the right group of the new custo
 
 ## Neural Network Model
 
-<img width="1536" height="1024" alt="image 2exp" src="https://github.com/user-attachments/assets/1ff21883-a01c-4aaa-afdc-7796d70da5a4" />
+<img width="885" height="868" alt="image" src="https://github.com/user-attachments/assets/e173a5e9-d387-42fa-a838-d1bdb29e4ac2" />
 
 ## DESIGN STEPS
-
 ### STEP 1:
-Understand the Problem,We need to predict which segment (A, B, C, or D) a new customer belongs to.
+Understand the classification task and identify input and output variables.
+
 ### STEP 2:
-Load the Dataset.Load the dataset from the CSV file (from GitHub or local file).
+Gather data, clean it, handle missing values, and split it into training and test sets.
+
 ### STEP 3:
-Identify input features and target column (Segmentation).
+Normalize/standardize features, encode categorical labels, and reshape data if needed.
+
 ### STEP 4:
-Convert categorical labels (A, B, C, D) into numbers.Scale the feature values.
+Choose the number of layers, neurons, and activation functions for your neural network.
+
 ### STEP 5:
-Create input layer (based on number of features).Add hidden layers (with ReLU activation).
-Add output layer (4 neurons with Softmax activation).
+Select a loss function (e.g., binary cross-entropy), optimizer (e.g., Adam), and metrics (e.g., accuracy).
+
 ### STEP 6:
-Check if accuracy is good.Check confusion matrix to see performance for each segment.
+Feed training data into the model, run multiple epochs, and monitor the loss and accuracy.
+
+### STEP 7:
+Save the trained model, export it if needed, and deploy it for real-world use.
+
+
 ## PROGRAM
 
 ### Name: YASEEN F
 ### Register Number: 212223220126
 
 ```python
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.metrics import confusion_matrix, classification_report
-from sklearn.metrics import ConfusionMatrixDisplay
-
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
-        
+class PeopleClassifier(nn.Module):
+    def __init__(self, input_size):
+        super(PeopleClassifier, self).__init__()
+        self.fc1 = nn.Linear(input_size, 32)
+        self.fc2 = nn.Linear(32, 16)
+        self.fc3 = nn.Linear(16, 8)
+        self.fc4 = nn.Linear(8, 4)
+    def forward(self, x):
+        x=F.relu(self.fc1(x))
+        x=F.relu(self.fc2(x))
+        x=F.relu(self.fc3(x))
+        x=self.fc4(x)
+        return x 
 
 ```
-```code
-np.random.seed(42)
-n = 2000
+```python
 
-data = pd.DataFrame({
-    "Age": np.random.randint(18, 70, n),
-    "Annual_Income": np.random.randint(20000, 150000, n),
-    "Spending_Score": np.random.randint(1, 100, n),
-    "Family_Size": np.random.randint(1, 6, n),
-    "Work_Experience": np.random.randint(0, 40, n)
-})
-conditions = [
-    (data["Annual_Income"] > 90000) & (data["Spending_Score"] > 70),
-    (data["Annual_Income"] > 60000) & (data["Spending_Score"] > 40),
-    (data["Annual_Income"] > 40000),
-]
+model =PeopleClassifier(input_size=X_train.shape[1])
+criterion =nn.CrossEntropyLoss()
+optimizer =optim.Adam(model.parameters(),lr=0.001)
 
-choices = ["A", "B", "C"]
-data["Segmentation"] = np.select(conditions, choices, default="D")
+def train_model(model,train_loader,criterion,optimizer,epochs):
+  for epoch in range(epochs):
+    model.train()
+    for X_batch,y_batch in train_loader:
+      optimizer.zero_grad()
+      outputs=model(X_batch)
+      loss=criterion(outputs,y_batch)
+      loss.backward()
+      optimizer.step()
 
-data.to_csv("customer_segmentation.csv", index=False)
+  if(epoch+1)%10==0:
+    print(f'Epoch [{epoch+1}/{epochs}],Loss:{loss.item():.4f}')
 
-print("Dataset Created Successfully!")
-print(data.head())
+```
 
-X = data.drop("Segmentation", axis=1)
-y = data["Segmentation"]
+```python
+def train_model(model, train_loader, criterion, optimizer, epochs):
+   train_model(model,train_loader,criterion,optimizer,epochs=100)
+model.eval()
+predictions, actuals = [], []
+with torch.no_grad():
+    for X_batch, y_batch in test_loader:
+        outputs = model(X_batch)
+        _, predicted = torch.max(outputs, 1)
+        predictions.extend(predicted.numpy())
+        actuals.extend(y_batch.numpy())
 
-label_encoder = LabelEncoder()
-y = label_encoder.fit_transform(y)
+accuracy = accuracy_score(actuals, predictions)
+conf_matrix = confusion_matrix(actuals, predictions)
+class_report = classification_report(actuals, predictions, target_names=[str(i) for i in label_encoder.classes_])
+print("Name: YASEEN F")
+print("Register No: 212223220126\n")
+print(f'Test Accuracy: {accuracy:.2f}%')
+print("Confusion Matrix:\n", conf_matrix)
+print("Classification Report:\n", class_report)
 
-scaler = StandardScaler()
-X = scaler.fit_transform(X)
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
-model = Sequential([
-    Dense(64, activation='relu', input_shape=(X_train.shape[1],)),
-    Dense(32, activation='relu'),
-    Dense(4, activation='softmax')
-])
-
-model.compile(
-    optimizer='adam',
-    loss='sparse_categorical_crossentropy',
-    metrics=['accuracy']
-)
-
-history = model.fit(
-    X_train, y_train,
-    epochs=30,
-    batch_size=32,
-    validation_split=0.2,
-    verbose=1
-)
-loss, accuracy = model.evaluate(X_test, y_test)
-print("\nTest Accuracy:", accuracy)
-
-y_pred_probs = model.predict(X_test)
-y_pred = np.argmax(y_pred_probs, axis=1)
-
-cm = confusion_matrix(y_test, y_pred)
-disp = ConfusionMatrixDisplay(confusion_matrix=cm,
-                              display_labels=label_encoder.classes_)
-disp.plot()
+print("Name: YASEEN F")
+print("Register No: 212223220126\n")
+import seaborn as sns
+import matplotlib.pyplot as plt
+sns.heatmap(conf_matrix, annot=True, cmap='Blues', xticklabels=label_encoder.classes_, yticklabels=label_encoder.classes_,fmt='g')
+plt.xlabel("Predicted Labels")
+plt.ylabel("True Labels")
+plt.title("Confusion Matrix")
 plt.show()
 
-print("\nClassification Report:\n")
-print(classification_report(
-    y_test,
-    y_pred,
-    target_names=label_encoder.classes_
-))
-loss, accuracy = model.evaluate(X_test, y_test, verbose=0)
-
-y_pred_probs = model.predict(X_test)
-y_pred = np.argmax(y_pred_probs, axis=1)
-
-cm = confusion_matrix(y_test, y_pred)
-print("Test Accuracy:", round(accuracy, 4))
-print("Confusion Matrix:")
-print(cm)
-print("Name: YASEEN F")
-print("Register No: 212223221026")
-print("\nSample Predictions:")
-for i in range(5):
-    print("Predicted:",
-          label_encoder.inverse_transform([y_pred[i]])[0],
-          "| Actual:",
-          label_encoder.inverse_transform([y_test[i]])[0])
 ```
-
-
-
 
 ## Dataset Information
 
-<img width="710" height="303" alt="image" src="https://github.com/user-attachments/assets/97eeb60a-eca5-456f-a033-fe83428a1e1c" />
+<img width="1307" height="261" alt="image" src="https://github.com/user-attachments/assets/9f407be8-7746-4a4c-ada1-8d11c6a627d0" />
+
 
 ## OUTPUT
-<img width="682" height="532" alt="image" src="https://github.com/user-attachments/assets/ad4643f3-0d8a-4438-b59f-0f28768a351f" />
+
+<img width="711" height="625" alt="image" src="https://github.com/user-attachments/assets/a59b4d22-3f6f-4045-af98-eb33d1b19589" />
 
 
+### Confusion Matrix & Classification Report
 
-
-### Confusion Matrix
-
-<img width="269" height="153" alt="image" src="https://github.com/user-attachments/assets/287f9039-37b3-4fa2-b9b0-e943637696cd" />
-
-### Classification Report
-
-<img width="552" height="283" alt="image" src="https://github.com/user-attachments/assets/5c79152e-27df-4f63-bdbc-6b1edd92cec3" />
+<img width="576" height="463" alt="image" src="https://github.com/user-attachments/assets/cb866873-a5cb-44f0-ace2-58002fc77baf" />
 
 
 ### New Sample Data Prediction
 
-<img width="320" height="218" alt="image" src="https://github.com/user-attachments/assets/36d18aca-8dba-41c3-b4d9-8860398dbd05" />
+<img width="363" height="121" alt="image" src="https://github.com/user-attachments/assets/954cdc5d-157b-4927-a10f-0b25f5ab88fd" />
 
 ## RESULT
 The model was evaluated using Test Accuracy, Confusion Matrix, and Classification Report, and it was able to predict the customer segmentation (A, B, C, D) effectively.
